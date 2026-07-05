@@ -2,7 +2,7 @@
 Merge Excel Files Module - Simple merge with NO aggregation.
 
 Features:
-- Upload 1 to 15 Excel files
+- Upload 1 to 20 Excel files
 - Merge all files (just stack rows)
 - NO aggregation, NO grouping
 - Color-coded rows by source file
@@ -88,7 +88,7 @@ def render_merge_files_page():
     """Render the Merge Excel Files page - SIMPLE MERGE ONLY."""
     st.title("📂 Merge Excel Files")
     st.markdown("""
-    Upload **1 to 15 Excel files** and merge them into one file.
+    Upload **1 to 20 Excel files** and merge them into one file.
     - **NO aggregation** - just combines all rows from all files
     - All columns are preserved
     - Files are stacked vertically (row by row)
@@ -99,7 +99,7 @@ def render_merge_files_page():
     
     # File uploader
     uploaded_files = st.file_uploader(
-        "Choose Excel/CSV files (1-15 files)",
+        "Choose Excel/CSV files (1-20 files)",
         type=['xlsx', 'xls', 'csv'],
         accept_multiple_files=True,
         key="merge_file_uploader"
@@ -128,8 +128,9 @@ def render_merge_files_page():
             st.warning("⚠️ Please upload at least 1 file")
             return
         
-        if len(uploaded_files) > 15:
-            st.warning("⚠️ Maximum 15 files allowed. Please remove some files.")
+        # UPDATED: Limit changed from 15 to 20
+        if len(uploaded_files) > 20:
+            st.warning("⚠️ Maximum 20 files allowed. Please remove some files.")
             return
         
         # Read all files
