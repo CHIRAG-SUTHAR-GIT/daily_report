@@ -139,7 +139,7 @@ def render_sidebar():
         
         # Page navigation
         pages = {
-            'upload': '� Aggregate by Account',
+            'upload': '🔍 Aggregate by Account',
             'attendance_admin': 'Attendance Admin',
             'attendance_observer': 'Observer Approvals',
             'outsource_login': 'Outsource Login',
@@ -914,4 +914,88 @@ def render_results_page():
                     st.error(f"❌ Save failed: {error_msg}")
 
 
-st_display_truncated_due_to_message_size: true
+# Main execution
+init_session_state()
+render_sidebar()
+
+# Route to the appropriate page based on session state
+current_page = st.session_state.current_page
+
+if current_page == 'upload':
+    render_upload_page()
+elif current_page == 'attendance_admin':
+    render_attendance_admin_page()
+elif current_page == 'attendance_observer':
+    render_attendance_observer_page()
+elif current_page == 'outsource_login':
+    render_outsource_login_page()
+elif current_page == 'district_download':
+    render_district_download_page()
+elif current_page == 'top_10_suspect':
+    render_top_10_suspect_accounts_page()
+elif current_page == 'districtwise':
+    render_districtwise_page()
+elif current_page == 'smart_district_split':
+    render_smart_district_split_page()
+elif current_page == 'ifsc_pincode_split':
+    render_ifsc_pincode_district_split_page()
+elif current_page == 'daily_report_district_split':
+    render_daily_report_district_split_page()
+elif current_page == 'filter_by_entry_count':
+    render_filter_by_entry_count_page()
+elif current_page == 'filter_by_unique_ack':
+    render_filter_by_unique_ack_page()
+elif current_page == 'non_gujarat_filter':
+    render_non_gujarat_filter_page()
+elif current_page == 'amount_matcher':
+    render_amount_matcher_page()
+elif current_page == 'bank_ack_pivot':
+    render_bank_ack_pivot_page()
+elif current_page == 'ack_list_pivot':
+    render_ack_list_pivot_page()
+elif current_page == 'report_generator':
+    from src.report_service import render_report_generator_page
+    render_report_generator_page()
+elif current_page == 'automated_workflow':
+    render_automated_workflow_page()
+elif current_page == 'gujarat_account_formatter':
+    render_gujarat_account_formatter_page()
+elif current_page == 'column_transfer':
+    render_column_transfer_page()
+elif current_page == 'column_selector':
+    render_column_selector_page()
+elif current_page == 'csv_fixer':
+    render_csv_fixer_page()
+elif current_page == 'excel_merger':
+    render_excel_merger_page()
+elif current_page == 'drop_call_finder':
+    render_drop_call_finder_page()
+elif current_page == 'mo_finder':
+    render_mo_finder_page()
+elif current_page == 'call_notice_merge':
+    render_call_notice_merge_page()
+elif current_page == 'transaction_matcher':
+    render_transaction_matcher_page()
+elif current_page == 'disputed_amount_matcher':
+    render_disputed_amount_matcher_page()
+elif current_page == 'money_transfer_dispute':
+    render_money_transfer_dispute_page()
+elif current_page == 'ack_bank_consolidator':
+    render_ack_bank_consolidator_page()
+elif current_page == 'bulk_mysql_import':
+    render_bulk_mysql_import_page()
+elif current_page == 'mysql_database_viewer':
+    render_mysql_database_viewer_page()
+elif current_page == 'ai_sql_assistant':
+    render_ai_sql_assistant_page()
+elif current_page == 'distinct_account_pivot':
+    render_distinct_account_pivot_page()
+elif current_page == 'view_database':
+    from src.database_service import DatabaseService
+    st.header("🗄️ View Database")
+    st.info("Database viewer coming soon...")
+else:
+    st.error(f"Unknown page: {current_page}")
+    st.info("Redirecting to home page...")
+    st.session_state.current_page = 'upload'
+    st.rerun()

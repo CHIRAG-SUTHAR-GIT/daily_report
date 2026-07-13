@@ -32,7 +32,7 @@ class UploadService:
     and provides preview functionality.
     """
     
-    MAX_FILE_SIZE_MB: float = 200.0  # Increased for large files
+    MAX_FILE_SIZE_MB: float = 50.0
     ALLOWED_EXTENSIONS: List[str] = ['.xlsx', '.xls', '.csv']
     
     def validate_file(

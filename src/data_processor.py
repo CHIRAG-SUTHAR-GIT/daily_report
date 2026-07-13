@@ -16,20 +16,24 @@ class DataProcessor:
     
     CURRENCY_SYMBOLS = ['₹', '$', '£', '€', 'Rs.', 'Rs', 'INR', 'USD']
     
+    def _normalize_empty_values(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Trim text cells and convert blank/null-like strings to missing values."""
+        df = df.copy()
+        str_cols = df.select_dtypes(include=['object', 'string']).columns
+        for col in str_cols:
+            df[col] = df[col].astype(str).str.strip()
+            df[col] = df[col].replace(['nan', 'NaN', 'None', '<NA>', 'NaT', ''], pd.NA)
+        return df
+
     def clean_dataframe(self, df: pd.DataFrame, mapping: ColumnMapping) -> pd.DataFrame:
         """
         Apply all cleaning operations - FAST but complete.
         """
         df = df.copy()
         
-        # Step 1: Remove empty rows
-        df = df.dropna(how='all').reset_index(drop=True)
-        
-        # Step 2: Trim whitespace from string columns
-        str_cols = df.select_dtypes(include=['object']).columns
-        for col in str_cols:
-            df[col] = df[col].astype(str).str.strip()
-            df[col] = df[col].replace(['nan', 'None', ''], pd.NA)
+        # Step 1: Trim text and remove rows that are empty after trimming.
+        df = self._normalize_empty_values(df)
+        df = self.remove_empty_rows(df)
         
         # Step 3: Standardize account numbers
         if mapping.bank_account_number and mapping.bank_account_number in df.columns:
@@ -52,6 +56,7 @@ class DataProcessor:
     def _parse_amounts_fast(self, series: pd.Series) -> pd.Series:
         """Parse amounts - vectorized and fast."""
         result = series.astype(str).str.strip()
+        missing_mask = series.isna() | result.str.lower().isin(['', 'nan', 'none', '<na>', 'nat'])
         
         # Remove currency symbols
         for symbol in self.CURRENCY_SYMBOLS:
@@ -61,20 +66,17 @@ class DataProcessor:
         result = result.str.replace(',', '', regex=False)
         result = result.str.strip()
         
-        # Convert to numeric
-        return pd.to_numeric(result, errors='coerce').fillna(0.0)
+        # Convert invalid non-empty values to 0 while preserving true missing values.
+        parsed = pd.to_numeric(result, errors='coerce')
+        return parsed.mask(~missing_mask & parsed.isna(), 0.0)
     
     # Keep these for compatibility
     def remove_empty_rows(self, df: pd.DataFrame) -> pd.DataFrame:
-        return df.dropna(how='all').reset_index(drop=True)
+        normalized = self._normalize_empty_values(df)
+        return normalized.dropna(how='all').reset_index(drop=True)
     
     def trim_whitespace(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = df.copy()
-        str_cols = df.select_dtypes(include=['object']).columns
-        for col in str_cols:
-            df[col] = df[col].astype(str).str.strip()
-            df[col] = df[col].replace('nan', pd.NA)
-        return df
+        return self._normalize_empty_values(df)
     
     def standardize_account_numbers_vectorized(self, series: pd.Series) -> pd.Series:
         result = series.astype(str)
