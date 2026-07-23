@@ -268,7 +268,3 @@ The aggregated output includes:
 ## 📞 Support
 
 For Gujarat Cyber Police internal use.
-
----
-
-*Built with Streamlit, Pandas, and MySQL*
