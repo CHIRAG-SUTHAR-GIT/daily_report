@@ -94,6 +94,18 @@ PAGE_INFO = {
         - Download district-specific data
         '''
     },
+    'investment_fraud_top_accounts': {
+        'title': 'Top 20 Investment Suspect Accounts',
+        'description': 'Rank Layer 1 bank accounts connected to investment-fraud complaints.',
+        'details': '''
+        **What this page does:**
+        - Detects investment-fraud complaints from the Additional Information report
+        - Matches acknowledgement numbers to the Layerwise report
+        - Keeps Layer 1 bank accounts and combines repeated account numbers
+        - Ranks the top 20 by total disputed amount
+        - Creates a formatted Excel report for download
+        '''
+    },
     'districtwise': {
         'title': '📊 Split Data by Column',
         'description': 'Split your data into separate files based on column values.',
@@ -1211,6 +1223,7 @@ def apply_custom_css():
     }
 
     [class*="st-key-nav_upload"] button,
+    [class*="st-key-nav_investment_fraud_top_accounts"] button,
     [class*="st-key-nav_top_10_suspect"] button,
     [class*="st-key-nav_amount_matcher"] button,
     [class*="st-key-nav_transaction_matcher"] button,
@@ -1258,6 +1271,7 @@ def apply_custom_css():
     }
 
     [class*="st-key-pin_nav_upload"],
+    [class*="st-key-pin_nav_investment_fraud_top_accounts"],
     [class*="st-key-pin_nav_top_10_suspect"],
     [class*="st-key-pin_nav_amount_matcher"],
     [class*="st-key-pin_nav_transaction_matcher"],
@@ -1818,6 +1832,7 @@ def apply_custom_css():
     }
 
     [class*="st-key-nav_upload"] button,
+    [class*="st-key-nav_investment_fraud_top_accounts"] button,
     [class*="st-key-nav_top_10_suspect"] button,
     [class*="st-key-nav_amount_matcher"] button,
     [class*="st-key-nav_transaction_matcher"] button,
@@ -1827,6 +1842,7 @@ def apply_custom_css():
     }
 
     [class*="st-key-nav_upload"],
+    [class*="st-key-nav_investment_fraud_top_accounts"],
     [class*="st-key-nav_top_10_suspect"],
     [class*="st-key-nav_amount_matcher"],
     [class*="st-key-nav_transaction_matcher"],

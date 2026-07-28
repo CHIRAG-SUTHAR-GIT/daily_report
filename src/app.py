@@ -66,6 +66,7 @@ from src.smart_district_split import render_smart_district_split_page
 from src.ifsc_pincode_district_split import render_ifsc_pincode_district_split_page
 from src.daily_report_district_split import render_daily_report_district_split_page
 from src.distinct_account_pivot import render_distinct_account_pivot_page
+from src.investment_fraud_top_accounts import render_investment_fraud_top_accounts_page
 from src.top_10_suspect_accounts import render_top_10_suspect_accounts_page
 from src.outsource_attendance import (
     render_attendance_admin_page,
@@ -144,6 +145,7 @@ def render_sidebar():
             'attendance_observer': 'Observer Approvals',
             'outsource_login': 'Outsource Login',
             'district_download': '📍 Victim-Suspect Mapping & Filter by State/District',
+            'investment_fraud_top_accounts': 'Top 20 Investment Suspect Accounts',
             'top_10_suspect': '🎯 Top 20 Suspect Accounts from Layer 1',
             'districtwise': '📊 Split Data by Column',
             'smart_district_split': '🗺️ Smart District Split',
@@ -186,6 +188,7 @@ def render_sidebar():
             'attendance_observer': 'Observer Approvals',
             'outsource_login': 'Outsource Login',
             'district_download': 'Victim-Suspect Mapping',
+            'investment_fraud_top_accounts': 'Top 20 Investment Suspect Accounts',
             'top_10_suspect': 'Top 20 Suspect Accounts',
             'districtwise': 'Split Data by Column',
             'smart_district_split': 'Smart District Split',
@@ -222,6 +225,7 @@ def render_sidebar():
         valid_page_keys = list(pages.keys())
         attendance_page_keys = ['attendance_admin', 'attendance_observer', 'outsource_login']
         top_page_keys = [
+            'investment_fraud_top_accounts',
             'top_10_suspect',
             'automated_workflow',
             'gujarat_account_formatter',
@@ -931,6 +935,8 @@ elif current_page == 'outsource_login':
     render_outsource_login_page()
 elif current_page == 'district_download':
     render_district_download_page()
+elif current_page == 'investment_fraud_top_accounts':
+    render_investment_fraud_top_accounts_page()
 elif current_page == 'top_10_suspect':
     render_top_10_suspect_accounts_page()
 elif current_page == 'districtwise':
