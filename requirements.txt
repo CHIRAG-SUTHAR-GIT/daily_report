@@ -9,4 +9,3 @@ pytest-cov
 reportlab
 google-generativeai
 mysql-connector-python
-pymongo

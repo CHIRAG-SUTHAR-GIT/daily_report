@@ -17,8 +17,6 @@ venv/
 *.csv
 data/*.xlsx
 data/*.csv
-data/outsource_attendance.sqlite
-data/outsource_attendance.sqlite-*
 
 # Streamlit
 .streamlit/secrets.toml

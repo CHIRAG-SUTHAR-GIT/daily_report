@@ -68,11 +68,6 @@ from src.daily_report_district_split import render_daily_report_district_split_p
 from src.distinct_account_pivot import render_distinct_account_pivot_page
 from src.investment_fraud_top_accounts import render_investment_fraud_top_accounts_page
 from src.top_10_suspect_accounts import render_top_10_suspect_accounts_page
-from src.outsource_attendance import (
-    render_attendance_admin_page,
-    render_attendance_observer_page,
-    render_outsource_login_page,
-)
 
 # Page configuration
 st.set_page_config(
@@ -141,9 +136,6 @@ def render_sidebar():
         # Page navigation
         pages = {
             'upload': '🔍 Aggregate by Account',
-            'attendance_admin': 'Attendance Admin',
-            'attendance_observer': 'Observer Approvals',
-            'outsource_login': 'Outsource Login',
             'district_download': '📍 Victim-Suspect Mapping & Filter by State/District',
             'investment_fraud_top_accounts': 'Top 20 Investment Suspect Accounts',
             'top_10_suspect': '🎯 Top 20 Suspect Accounts from Layer 1',
@@ -184,9 +176,6 @@ def render_sidebar():
 
         clean_page_names = {
             'upload': 'Aggregate by Account',
-            'attendance_admin': 'Attendance Admin',
-            'attendance_observer': 'Observer Approvals',
-            'outsource_login': 'Outsource Login',
             'district_download': 'Victim-Suspect Mapping',
             'investment_fraud_top_accounts': 'Top 20 Investment Suspect Accounts',
             'top_10_suspect': 'Top 20 Suspect Accounts',
@@ -222,8 +211,6 @@ def render_sidebar():
 
         clean_page_names['daily_report_district_split'] = 'Dailly Reports Split Suspect District Gujarat'
 
-        valid_page_keys = list(pages.keys())
-        attendance_page_keys = ['attendance_admin', 'attendance_observer', 'outsource_login']
         top_page_keys = [
             'investment_fraud_top_accounts',
             'top_10_suspect',
@@ -247,46 +234,13 @@ def render_sidebar():
                 unsafe_allow_html=True,
             )
 
-        st.markdown(
-            """
-            <style>
-            [class*="st-key-attendance_nav_"] button {
-                background: linear-gradient(135deg, #15251D, #11161E) !important;
-                border: 1px solid #21C16B !important;
-                border-left: 4px solid #FF9F0A !important;
-                color: #F8F3EA !important;
-                font-weight: 800 !important;
-            }
-            [class*="st-key-attendance_nav_"] button:hover {
-                background: #1E3328 !important;
-                border-color: #FF9F0A !important;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-        sidebar_section_title("Attendance Desk", "Protected")
-        attendance_labels = {
-            'attendance_admin': 'Admin Panel',
-            'attendance_observer': 'Observer Desk',
-            'outsource_login': 'Outsource Login',
-        }
-        for page_key in attendance_page_keys:
-            if st.button(attendance_labels[page_key], key=f"attendance_nav_{page_key}", use_container_width=True):
-                st.session_state.current_page = page_key
-                st.rerun()
-        st.caption("Password-protected attendance workflow.")
-        st.markdown("---")
-
         sidebar_section_title("All Pages")
         ordered_page_keys = top_page_keys + [
             page_key
             for page_key in pages.keys()
-            if page_key not in attendance_page_keys and page_key not in top_page_keys
+            if page_key not in top_page_keys
         ]
         for page_key in ordered_page_keys:
-            if page_key in attendance_page_keys:
-                continue
             page_name = page_label(page_key)
             if st.button(page_name, key=f"nav_{page_key}", use_container_width=True):
                 st.session_state.current_page = page_key
@@ -927,12 +881,6 @@ current_page = st.session_state.current_page
 
 if current_page == 'upload':
     render_upload_page()
-elif current_page == 'attendance_admin':
-    render_attendance_admin_page()
-elif current_page == 'attendance_observer':
-    render_attendance_observer_page()
-elif current_page == 'outsource_login':
-    render_outsource_login_page()
 elif current_page == 'district_download':
     render_district_download_page()
 elif current_page == 'investment_fraud_top_accounts':
