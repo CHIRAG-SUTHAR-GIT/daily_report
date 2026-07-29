@@ -24,7 +24,7 @@ from openpyxl.utils import get_column_letter
 from src.ui_styling import render_page_header_with_info
 
 
-TOP_ACCOUNT_LIMIT = 20
+TOP_ACCOUNT_LIMIT = 30
 
 REPORT_HEADERS = [
     "Sr.No.",
