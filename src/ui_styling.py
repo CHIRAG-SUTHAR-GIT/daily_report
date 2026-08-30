@@ -106,6 +106,17 @@ PAGE_INFO = {
         - Creates a formatted Excel report for download
         '''
     },
+    'e_fir_report': {
+        'title': 'E-FIR Report',
+        'description': 'Match Crime Report and Zero E-FIR records by acknowledgement number.',
+        'details': '''
+        **What this page does:**
+        - Filters the E-FIR Details sheet by the selected E-FIR date
+        - Matches acknowledgement numbers across both reports
+        - Keeps one Crime Report record for each matched acknowledgement number
+        - Creates a formatted E-FIR Excel report for download
+        '''
+    },
     'districtwise': {
         'title': '📊 Split Data by Column',
         'description': 'Split your data into separate files based on column values.',
@@ -1225,6 +1236,7 @@ def apply_custom_css():
     [class*="st-key-nav_upload"] button,
     [class*="st-key-nav_investment_fraud_top_accounts"] button,
     [class*="st-key-nav_top_10_suspect"] button,
+    [class*="st-key-nav_e_fir_report"] button,
     [class*="st-key-nav_amount_matcher"] button,
     [class*="st-key-nav_transaction_matcher"] button,
     [class*="st-key-nav_view_database"] button {
@@ -1273,6 +1285,7 @@ def apply_custom_css():
     [class*="st-key-pin_nav_upload"],
     [class*="st-key-pin_nav_investment_fraud_top_accounts"],
     [class*="st-key-pin_nav_top_10_suspect"],
+    [class*="st-key-pin_nav_e_fir_report"],
     [class*="st-key-pin_nav_amount_matcher"],
     [class*="st-key-pin_nav_transaction_matcher"],
     [class*="st-key-pin_nav_view_database"] {
@@ -1834,6 +1847,7 @@ def apply_custom_css():
     [class*="st-key-nav_upload"] button,
     [class*="st-key-nav_investment_fraud_top_accounts"] button,
     [class*="st-key-nav_top_10_suspect"] button,
+    [class*="st-key-nav_e_fir_report"] button,
     [class*="st-key-nav_amount_matcher"] button,
     [class*="st-key-nav_transaction_matcher"] button,
     [class*="st-key-nav_view_database"] button {
@@ -1844,6 +1858,7 @@ def apply_custom_css():
     [class*="st-key-nav_upload"],
     [class*="st-key-nav_investment_fraud_top_accounts"],
     [class*="st-key-nav_top_10_suspect"],
+    [class*="st-key-nav_e_fir_report"],
     [class*="st-key-nav_amount_matcher"],
     [class*="st-key-nav_transaction_matcher"],
     [class*="st-key-nav_view_database"] {

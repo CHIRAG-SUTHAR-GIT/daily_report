@@ -68,6 +68,7 @@ from src.daily_report_district_split import render_daily_report_district_split_p
 from src.distinct_account_pivot import render_distinct_account_pivot_page
 from src.investment_fraud_top_accounts import render_investment_fraud_top_accounts_page
 from src.top_10_suspect_accounts import render_top_10_suspect_accounts_page
+from src.e_fir_report import render_efir_report_page
 
 # Page configuration
 st.set_page_config(
@@ -154,6 +155,7 @@ def render_sidebar():
             'column_transfer': 'Add Columns by Match',
             'column_selector': '📋 Filter Excel File with the Columns You Need',
             'csv_fixer': 'CSV Fixer',
+            'e_fir_report': 'E-FIR Report',
             'excel_merger': '📎 Merge Excel Files',
             'drop_call_finder': 'Drop Call Finder',
             'mo_finder': 'MO Finder',
@@ -194,6 +196,7 @@ def render_sidebar():
             'column_transfer': 'Add Columns by Match',
             'column_selector': 'Column Selector',
             'csv_fixer': 'CSV Fixer',
+            'e_fir_report': 'E-FIR Report',
             'excel_merger': 'Merge Excel Files',
             'drop_call_finder': 'Drop Call Finder',
             'mo_finder': 'MO Finder',
@@ -218,6 +221,7 @@ def render_sidebar():
             'gujarat_account_formatter',
             'column_transfer',
             'daily_report_district_split',
+            'e_fir_report',
             'csv_fixer',
             'report_generator',
             'call_notice_merge',
@@ -895,6 +899,8 @@ elif current_page == 'ifsc_pincode_split':
     render_ifsc_pincode_district_split_page()
 elif current_page == 'daily_report_district_split':
     render_daily_report_district_split_page()
+elif current_page == 'e_fir_report':
+    render_efir_report_page()
 elif current_page == 'filter_by_entry_count':
     render_filter_by_entry_count_page()
 elif current_page == 'filter_by_unique_ack':
