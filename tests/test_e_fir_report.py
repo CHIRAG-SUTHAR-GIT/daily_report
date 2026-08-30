@@ -31,10 +31,10 @@ def _zero_efir_workbook_bytes() -> bytes:
         ]
     )
     details.append(
-        [1, "ACK002", 5000, "011200000000002", datetime(2026, 8, 30, 8, 0)]
+        [1, "ACK002", 5000, "011200000000001", datetime(2026, 8, 30, 9, 0)]
     )
     details.append(
-        [2, "ACK001", 12500, "011200000000001", datetime(2026, 8, 30, 9, 0)]
+        [2, "ACK001", 12500, "011200000000002", datetime(2026, 8, 30, 8, 0)]
     )
     details.append(
         [3, "ACK999", 9999, "011200000000999", datetime(2026, 8, 29, 23, 0)]
@@ -46,7 +46,7 @@ def _zero_efir_workbook_bytes() -> bytes:
     return output.getvalue()
 
 
-def test_build_efir_report_uses_efir_amount_and_sorts_by_efir_number():
+def test_build_efir_report_uses_efir_amount_and_sorts_by_efir_time():
     crime_df = pd.DataFrame(
         {
             "Acknowledgement No.": ["ACK001", "ACK001", "ACK002", "ACK003"],
@@ -60,14 +60,14 @@ def test_build_efir_report_uses_efir_amount_and_sorts_by_efir_number():
         {
             "Acknowledgement No": ["ACK002", "ACK001", "ACK999"],
             "e-Zero FIR No.": [
-                "011200000000002",
                 "011200000000001",
+                "011200000000002",
                 "011200000000999",
             ],
             "Total Reported Amount": [5000, 12500, 9999],
             "Date of e-Zero FIR": [
-                datetime(2026, 8, 30, 8, 0),
                 datetime(2026, 8, 30, 9, 0),
+                datetime(2026, 8, 30, 8, 0),
                 datetime(2026, 8, 29, 23, 0),
             ],
         }
@@ -81,7 +81,7 @@ def test_build_efir_report_uses_efir_amount_and_sorts_by_efir_number():
     assert report.loc[0, "Name"] == "Asha"
     assert report.loc[0, "District"] == "SURAT"
     assert report.loc[0, "Police Station"] == "VESU"
-    assert report.loc[0, "E-FIR No."] == "011200000000001"
+    assert report.loc[0, "E-FIR No."] == "011200000000002"
     assert summary["matched_acknowledgements"] == 2
     assert summary["combined_crime_rows"] == 1
     assert summary["unmatched_crime_acknowledgements"] == 1

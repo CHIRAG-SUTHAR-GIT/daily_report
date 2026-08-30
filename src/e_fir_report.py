@@ -5,7 +5,7 @@ from __future__ import annotations
 import io
 import re
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Dict, Iterable, Mapping
@@ -137,13 +137,6 @@ def _ack_key(value: Any) -> str:
     return _NON_ALPHANUMERIC_RE.sub("", _clean_identifier(value)).upper()
 
 
-def _identifier_sort_key(value: Any) -> tuple[int, int | str]:
-    identifier = _clean_identifier(value)
-    if identifier.isdigit():
-        return 0, int(identifier)
-    return 1, identifier.upper()
-
-
 def _parse_amount(value: Any) -> float | None:
     if value is None:
         return None
@@ -167,15 +160,20 @@ def _parse_amount(value: Any) -> float | None:
     return -amount if negative else amount
 
 
-def _parse_date(value: Any) -> date | None:
+def _parse_datetime(value: Any) -> datetime | None:
     if value is None:
         return None
-    if isinstance(value, datetime):
-        return value.date()
-    if isinstance(value, date):
-        return value
+    try:
+        if pd.isna(value):
+            return None
+    except (TypeError, ValueError):
+        pass
     if isinstance(value, pd.Timestamp):
-        return value.date()
+        return value.to_pydatetime()
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, date):
+        return datetime.combine(value, time.min)
 
     text = _clean_text(value)
     if not text:
@@ -183,7 +181,7 @@ def _parse_date(value: Any) -> date | None:
     parsed = pd.to_datetime(text, errors="coerce", dayfirst=True)
     if pd.isna(parsed):
         return None
-    return parsed.date()
+    return parsed.to_pydatetime()
 
 
 def _first_non_empty(values: Iterable[Any]) -> str:
@@ -310,9 +308,14 @@ def build_efir_report(
             "Fraudulent Amount": efir_df[
                 efir_columns["Fraudulent Amount"]
             ].map(_parse_amount),
-            "_efir_date": efir_df[efir_columns["E-FIR Date"]].map(_parse_date),
+            "_efir_datetime": efir_df[efir_columns["E-FIR Date"]].map(
+                _parse_datetime
+            ),
             "_efir_order": range(len(efir_df)),
         }
+    )
+    efir_rows["_efir_date"] = efir_rows["_efir_datetime"].map(
+        lambda value: value.date() if value is not None else None
     )
     efir_rows = efir_rows[
         (efir_rows["_ack_key"] != "") & (efir_rows["_efir_date"] == report_date)
@@ -323,6 +326,7 @@ def build_efir_report(
             {
                 "E-FIR No.": _first_non_empty,
                 "Fraudulent Amount": "first",
+                "_efir_datetime": "min",
                 "_efir_order": "min",
             }
         )
@@ -330,9 +334,8 @@ def build_efir_report(
     )
 
     matched = efir_grouped.merge(crime_grouped, on="_ack_key", how="inner", sort=False)
-    matched["_efir_sort"] = matched["E-FIR No."].map(_identifier_sort_key)
     matched = matched.sort_values(
-        ["_efir_sort", "_efir_order"],
+        ["_efir_datetime", "_efir_order"],
         kind="stable",
     ).reset_index(drop=True)
 

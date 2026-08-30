@@ -115,7 +115,7 @@ PAGE_INFO = {
         - Matches acknowledgement numbers across both reports
         - Uses Total Reported Amount from the E-FIR Details sheet
         - Keeps one Crime Report record for each matched acknowledgement number
-        - Sorts the downloaded report by E-FIR number in ascending order
+        - Sorts by Date of e-Zero FIR time, with the oldest record first
         - Creates a formatted E-FIR Excel report for download
         '''
     },
