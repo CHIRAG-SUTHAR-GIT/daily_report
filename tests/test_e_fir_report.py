@@ -22,11 +22,23 @@ def _zero_efir_workbook_bytes() -> bytes:
 
     details = workbook.create_sheet("Details")
     details.append(
-        ["S No.", "Acknowledgement No", "e-Zero FIR No.", "Date of e-Zero FIR"]
+        [
+            "S No.",
+            "Acknowledgement No",
+            "Total Reported Amount",
+            "e-Zero FIR No.",
+            "Date of e-Zero FIR",
+        ]
     )
-    details.append([1, "ACK002", "011200000000002", datetime(2026, 8, 30, 8, 0)])
-    details.append([2, "ACK001", "011200000000001", datetime(2026, 8, 30, 9, 0)])
-    details.append([3, "ACK999", "011200000000999", datetime(2026, 8, 29, 23, 0)])
+    details.append(
+        [1, "ACK002", 5000, "011200000000002", datetime(2026, 8, 30, 8, 0)]
+    )
+    details.append(
+        [2, "ACK001", 12500, "011200000000001", datetime(2026, 8, 30, 9, 0)]
+    )
+    details.append(
+        [3, "ACK999", 9999, "011200000000999", datetime(2026, 8, 29, 23, 0)]
+    )
 
     output = io.BytesIO()
     workbook.save(output)
@@ -34,7 +46,7 @@ def _zero_efir_workbook_bytes() -> bytes:
     return output.getvalue()
 
 
-def test_build_efir_report_matches_ack_without_summing_crime_amounts():
+def test_build_efir_report_uses_efir_amount_and_sorts_by_efir_number():
     crime_df = pd.DataFrame(
         {
             "Acknowledgement No.": ["ACK001", "ACK001", "ACK002", "ACK003"],
@@ -52,6 +64,7 @@ def test_build_efir_report_matches_ack_without_summing_crime_amounts():
                 "011200000000001",
                 "011200000000999",
             ],
+            "Total Reported Amount": [5000, 12500, 9999],
             "Date of e-Zero FIR": [
                 datetime(2026, 8, 30, 8, 0),
                 datetime(2026, 8, 30, 9, 0),
@@ -63,12 +76,12 @@ def test_build_efir_report_matches_ack_without_summing_crime_amounts():
     report, summary = build_efir_report(crime_df, efir_df, date(2026, 8, 30))
 
     assert list(report.columns) == REPORT_COLUMNS
-    assert report["ACK No."].tolist() == ["ACK002", "ACK001"]
-    assert report["Fraudulent Amount"].tolist() == [500.0, 1000.0]
-    assert report.loc[1, "Name"] == "Asha"
-    assert report.loc[1, "District"] == "SURAT"
-    assert report.loc[1, "Police Station"] == "VESU"
-    assert report.loc[1, "E-FIR No."] == "011200000000001"
+    assert report["ACK No."].tolist() == ["ACK001", "ACK002"]
+    assert report["Fraudulent Amount"].tolist() == [12500.0, 5000.0]
+    assert report.loc[0, "Name"] == "Asha"
+    assert report.loc[0, "District"] == "SURAT"
+    assert report.loc[0, "Police Station"] == "VESU"
+    assert report.loc[0, "E-FIR No."] == "011200000000001"
     assert summary["matched_acknowledgements"] == 2
     assert summary["combined_crime_rows"] == 1
     assert summary["unmatched_crime_acknowledgements"] == 1
@@ -91,8 +104,8 @@ def test_process_efir_report_files_uses_details_sheet():
         date(2026, 8, 30),
     )
 
-    assert result.report["ACK No."].tolist() == ["ACK002", "ACK001"]
-    assert result.report["Fraudulent Amount"].tolist() == [500.0, 100.0]
+    assert result.report["ACK No."].tolist() == ["ACK001", "ACK002"]
+    assert result.report["Fraudulent Amount"].tolist() == [12500.0, 5000.0]
     assert result.filename.startswith("E_FIR_Report_")
     assert result.filename.endswith(".xlsx")
 
@@ -147,6 +160,7 @@ def test_build_efir_report_reports_missing_required_columns():
         {
             "Acknowledgement No": ["ACK001"],
             "e-Zero FIR No.": ["EFIR001"],
+            "Total Reported Amount": [1000],
             "Date of e-Zero FIR": [datetime(2026, 8, 30, 8, 0)],
         }
     )
@@ -169,6 +183,7 @@ def test_build_efir_report_uses_selected_date_as_master_filter():
         {
             "Acknowledgement No": ["ACK001", "ACK002"],
             "e-Zero FIR No.": ["EFIR001", "EFIR002"],
+            "Total Reported Amount": [1000, 2000],
             "Date of e-Zero FIR": [
                 datetime(2026, 8, 29, 23, 59),
                 datetime(2026, 8, 30, 0, 1),
@@ -179,5 +194,6 @@ def test_build_efir_report_uses_selected_date_as_master_filter():
     report, summary = build_efir_report(crime_df, efir_df, date(2026, 8, 30))
 
     assert report["ACK No."].tolist() == ["ACK002"]
+    assert report["Fraudulent Amount"].tolist() == [2000.0]
     assert summary["efir_acknowledgements"] == 1
     assert summary["matched_acknowledgements"] == 1

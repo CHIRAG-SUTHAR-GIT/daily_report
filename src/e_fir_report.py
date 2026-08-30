@@ -45,12 +45,6 @@ CRIME_COLUMN_ALIASES = {
         "victimname",
         "name",
     ),
-    "Fraudulent Amount": (
-        "amount",
-        "fraudulentamount",
-        "fraudamount",
-        "transactionamount",
-    ),
     "District": (
         "district",
         "complainantdistrict",
@@ -72,6 +66,12 @@ EFIR_COLUMN_ALIASES = {
         "efirno",
         "efirnumber",
         "zerofirno",
+    ),
+    "Fraudulent Amount": (
+        "totalreportedamount",
+        "reportedamount",
+        "fraudulentamount",
+        "fraudamount",
     ),
     "E-FIR Date": (
         "dateofezerofir",
@@ -137,6 +137,13 @@ def _ack_key(value: Any) -> str:
     return _NON_ALPHANUMERIC_RE.sub("", _clean_identifier(value)).upper()
 
 
+def _identifier_sort_key(value: Any) -> tuple[int, int | str]:
+    identifier = _clean_identifier(value)
+    if identifier.isdigit():
+        return 0, int(identifier)
+    return 1, identifier.upper()
+
+
 def _parse_amount(value: Any) -> float | None:
     if value is None:
         return None
@@ -185,13 +192,6 @@ def _first_non_empty(values: Iterable[Any]) -> str:
         if cleaned:
             return cleaned
     return ""
-
-
-def _first_amount(values: Iterable[Any]) -> float | None:
-    for value in values:
-        if not pd.isna(value):
-            return float(value)
-    return None
 
 
 def _detect_columns(
@@ -282,9 +282,6 @@ def build_efir_report(
             "_ack_key": crime_df[crime_columns["ACK No."]].map(_ack_key),
             "ACK No.": crime_df[crime_columns["ACK No."]].map(_clean_identifier),
             "Name": crime_df[crime_columns["Name"]].map(_clean_text),
-            "Fraudulent Amount": crime_df[crime_columns["Fraudulent Amount"]].map(
-                _parse_amount
-            ),
             "District": crime_df[crime_columns["District"]].map(_clean_text),
             "Police Station": crime_df[crime_columns["Police Station"]].map(
                 _clean_text
@@ -299,7 +296,6 @@ def build_efir_report(
             {
                 "ACK No.": _first_non_empty,
                 "Name": _first_non_empty,
-                "Fraudulent Amount": _first_amount,
                 "District": _first_non_empty,
                 "Police Station": _first_non_empty,
             }
@@ -311,6 +307,9 @@ def build_efir_report(
         {
             "_ack_key": efir_df[efir_columns["ACK No."]].map(_ack_key),
             "E-FIR No.": efir_df[efir_columns["E-FIR No."]].map(_clean_identifier),
+            "Fraudulent Amount": efir_df[
+                efir_columns["Fraudulent Amount"]
+            ].map(_parse_amount),
             "_efir_date": efir_df[efir_columns["E-FIR Date"]].map(_parse_date),
             "_efir_order": range(len(efir_df)),
         }
@@ -320,12 +319,22 @@ def build_efir_report(
     ].copy()
     efir_grouped = (
         efir_rows.groupby("_ack_key", sort=False, as_index=False)
-        .agg({"E-FIR No.": _first_non_empty, "_efir_order": "min"})
+        .agg(
+            {
+                "E-FIR No.": _first_non_empty,
+                "Fraudulent Amount": "first",
+                "_efir_order": "min",
+            }
+        )
         .reset_index(drop=True)
     )
 
     matched = efir_grouped.merge(crime_grouped, on="_ack_key", how="inner", sort=False)
-    matched = matched.sort_values("_efir_order", kind="stable").reset_index(drop=True)
+    matched["_efir_sort"] = matched["E-FIR No."].map(_identifier_sort_key)
+    matched = matched.sort_values(
+        ["_efir_sort", "_efir_order"],
+        kind="stable",
+    ).reset_index(drop=True)
 
     report = matched[
         [
@@ -508,7 +517,6 @@ def render_efir_report_page() -> None:
         return
 
     summary = result.summary
-    total_amount = result.report["Fraudulent Amount"].sum(min_count=1)
     metrics = st.columns(4)
     metrics[0].metric(
         "E-FIR ACKs on selected date",
@@ -523,8 +531,8 @@ def render_efir_report_page() -> None:
         f"{summary['unmatched_efir_acknowledgements']:,}",
     )
     metrics[3].metric(
-        "Fraudulent Amount",
-        "0.00" if pd.isna(total_amount) else f"{total_amount:,.2f}",
+        "Crime Report ACKs",
+        f"{summary['crime_acknowledgements']:,}",
     )
 
     if result.report.empty:

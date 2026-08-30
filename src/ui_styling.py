@@ -113,7 +113,9 @@ PAGE_INFO = {
         **What this page does:**
         - Filters the E-FIR Details sheet by the selected E-FIR date
         - Matches acknowledgement numbers across both reports
+        - Uses Total Reported Amount from the E-FIR Details sheet
         - Keeps one Crime Report record for each matched acknowledgement number
+        - Sorts the downloaded report by E-FIR number in ascending order
         - Creates a formatted E-FIR Excel report for download
         '''
     },
