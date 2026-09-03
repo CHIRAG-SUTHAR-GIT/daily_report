@@ -138,7 +138,7 @@ def render_sidebar():
         pages = {
             'upload': '🔍 Aggregate by Account',
             'district_download': '📍 Victim-Suspect Mapping & Filter by State/District',
-            'investment_fraud_top_accounts': 'Top 20 Investment Suspect Accounts',
+            'investment_fraud_top_accounts': 'Investment Fraud & Digital Arrest Top 30',
             'top_10_suspect': '🎯 Top 20 Suspect Accounts from Layer 1',
             'districtwise': '📊 Split Data by Column',
             'smart_district_split': '🗺️ Smart District Split',
@@ -179,7 +179,7 @@ def render_sidebar():
         clean_page_names = {
             'upload': 'Aggregate by Account',
             'district_download': 'Victim-Suspect Mapping',
-            'investment_fraud_top_accounts': 'Top 20 Investment Suspect Accounts',
+            'investment_fraud_top_accounts': 'Investment Fraud & Digital Arrest Top 30',
             'top_10_suspect': 'Top 20 Suspect Accounts',
             'districtwise': 'Split Data by Column',
             'smart_district_split': 'Smart District Split',

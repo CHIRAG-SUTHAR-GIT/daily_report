@@ -5,9 +5,12 @@ import pandas as pd
 from openpyxl import load_workbook
 
 from src.investment_fraud_top_accounts import (
+    TOP30_CANDIDATE_LIMIT,
     build_investment_fraud_report,
     generate_investment_fraud_excel,
+    is_digital_arrest,
     is_investment_fraud,
+    is_qualifying_fraud,
 )
 
 
@@ -17,6 +20,16 @@ def test_is_investment_fraud_accepts_common_variations():
     assert is_investment_fraud("Fraud through an investment platform")
     assert not is_investment_fraud("Job fraud")
     assert not is_investment_fraud("Investment advice only")
+
+
+def test_is_digital_arrest_accepts_common_variations():
+    assert is_digital_arrest("DIGITAL ARREST scam")
+    assert is_digital_arrest("Digitl arest complaint")
+    assert is_digital_arrest("Arrest threat through digital channel")
+    assert not is_digital_arrest("Digital payment fraud")
+    assert not is_digital_arrest("Police arrest report")
+    assert is_qualifying_fraud("Investment fraud complaint")
+    assert is_qualifying_fraud("Digital arrest complaint")
 
 
 def test_build_investment_fraud_report_matches_aggregates_and_ranks_accounts():
@@ -130,9 +143,68 @@ def test_build_investment_fraud_report_matches_aggregates_and_ranks_accounts():
         "qualifying_acknowledgements": 2,
         "matched_layer_one_transactions": 4,
         "matched_accounts": 2,
-        "excluded_non_bank_accounts": 1,
+        "excluded_non_bank_accounts": 0,
         "output_accounts": 2,
     }
+
+
+def test_top30_includes_both_fraud_types_and_skips_non_ascii_numeric_accounts():
+    numeric_accounts = [f"{700000000000 + index}" for index in range(1, 36)]
+    invalid_accounts = [
+        "ABC999",
+        "123A45",
+        "ACC-001",
+        "99X",
+        "A000",
+        "१२३४५",
+    ]
+    accounts = numeric_accounts + invalid_accounts
+    additional_df = pd.DataFrame(
+        [
+            {
+                "Acknowledgement No.": f"ACK{index:03d}",
+                "Crime Additional Information": (
+                    "Investment fraud complaint"
+                    if index % 2
+                    else "Digitl arest complaint"
+                ),
+            }
+            for index in range(1, len(accounts) + 1)
+        ]
+    )
+    layerwise_df = pd.DataFrame(
+        [
+            {
+                "Acknowledgement No.": f"ACK{index:03d}",
+                "Account No.": account,
+                "IFSC Code": "TEST0000123",
+                "Address": "Test address",
+                "District": "Test district",
+                "State": "Gujarat",
+                "Transaction Amount": index * 1_000,
+                "Disputed Amount": index * 100,
+                "Bank/FIs": "TEST BANK",
+                "Layers": 1,
+            }
+            for index, account in enumerate(accounts, start=1)
+        ]
+    )
+
+    report_df, summary = build_investment_fraud_report(
+        additional_df, layerwise_df
+    )
+    output_accounts = report_df["Fraudster Bank Account Number"].tolist()
+
+    assert TOP30_CANDIDATE_LIMIT == 30
+    assert len(report_df) == 30
+    assert summary["output_accounts"] == 30
+    assert output_accounts[0] == numeric_accounts[-1]
+    assert output_accounts[-1] == numeric_accounts[5]
+    assert report_df["Sr.No."].tolist() == list(range(1, 31))
+    assert all(
+        account.isascii() and account.isdigit() for account in output_accounts
+    )
+    assert not set(invalid_accounts) & set(output_accounts)
 
 
 def test_generate_investment_fraud_excel_preserves_identifiers_and_layout():
@@ -159,13 +231,15 @@ def test_generate_investment_fraud_excel_preserves_identifiers_and_layout():
         report_df, report_date=date(2026, 7, 27)
     )
     workbook = load_workbook(BytesIO(excel_bytes), data_only=False)
-    worksheet = workbook["Top 20 Suspect Accounts"]
+    worksheet = workbook["Top 30 Suspect Accounts"]
 
     assert filename == (
-        "27-07-2026 Investment Fraud Top 20 Suspect Accounts from Layer 1.xlsx"
+        "27-07-2026 Investment Fraud and Digital Arrest Top 30 "
+        "Suspect Accounts from Layer 1.xlsx"
     )
     assert worksheet["A1"].value == (
-        "27-07-2026 Investment Fraud Top 20 Suspect Accounts from Layer 1"
+        "27-07-2026 Investment Fraud and Digital Arrest Top 30 "
+        "Suspect Accounts from Layer 1"
     )
     assert worksheet["B4"].value == "001234567890"
     assert worksheet["B4"].number_format == "@"

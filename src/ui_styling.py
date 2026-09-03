@@ -95,14 +95,14 @@ PAGE_INFO = {
         '''
     },
     'investment_fraud_top_accounts': {
-        'title': 'Top 20 Investment Suspect Accounts',
-        'description': 'Rank Layer 1 bank accounts connected to investment-fraud complaints.',
+        'title': 'Investment Fraud & Digital Arrest Top 30',
+        'description': 'Rank Layer 1 bank accounts connected to investment-fraud and digital-arrest complaints.',
         'details': '''
         **What this page does:**
-        - Detects investment-fraud complaints from the Additional Information report
+        - Detects investment-fraud and digital-arrest complaints from the Additional Information report
         - Matches acknowledgement numbers to the Layerwise report
-        - Keeps Layer 1 bank accounts and combines repeated account numbers
-        - Ranks the top 20 by total disputed amount
+        - Keeps numeric Layer 1 bank accounts and combines repeated account numbers
+        - Ranks the top 30 by total disputed amount
         - Creates a formatted Excel report for download
         '''
     },

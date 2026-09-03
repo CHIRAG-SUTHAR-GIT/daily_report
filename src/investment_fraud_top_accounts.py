@@ -1,8 +1,8 @@
-"""Investment-fraud Top 20 suspect account report.
+"""Investment-fraud and digital-arrest Top 30 suspect account report.
 
-The report joins investment-fraud complaints from the Additional Information
-report to Layer 1 transactions in the Layerwise report, combines repeated bank
-accounts, and ranks the top 20 by total disputed amount.
+The report joins qualifying complaints from the Additional Information report
+to Layer 1 transactions in the Layerwise report, combines repeated numeric bank
+accounts, and ranks the top 30 by total disputed amount.
 """
 
 from __future__ import annotations
@@ -24,7 +24,9 @@ from openpyxl.utils import get_column_letter
 from src.ui_styling import render_page_header_with_info
 
 
-TOP_ACCOUNT_LIMIT = 30
+TOP30_CANDIDATE_LIMIT = 30
+# Keep the existing public name for callers of this module.
+TOP_ACCOUNT_LIMIT = TOP30_CANDIDATE_LIMIT
 
 REPORT_HEADERS = [
     "Sr.No.",
@@ -164,6 +166,31 @@ def is_investment_fraud(value: Any) -> bool:
     )
 
 
+def is_digital_arrest(value: Any) -> bool:
+    """Match nearby digital/arrest words while tolerating common misspellings."""
+    words = [word for word in _normalized(value).split() if word]
+    digital_positions = [
+        index
+        for index, word in enumerate(words)
+        if word.startswith("DIGIT") or _edit_distance(word, "DIGITAL") <= 2
+    ]
+    arrest_positions = [
+        index
+        for index, word in enumerate(words)
+        if word.startswith("ARREST") or _edit_distance(word, "ARREST") <= 2
+    ]
+    return any(
+        abs(digital_index - arrest_index) <= 3
+        for digital_index in digital_positions
+        for arrest_index in arrest_positions
+    )
+
+
+def is_qualifying_fraud(value: Any) -> bool:
+    """Return whether the complaint belongs in the combined Top 30 report."""
+    return is_investment_fraud(value) or is_digital_arrest(value)
+
+
 def _find_column(columns: Iterable[Any], aliases: Iterable[str], label: str) -> Any:
     column_list = list(columns)
     keyed_columns = [(_header_key(column), column) for column in column_list]
@@ -256,7 +283,7 @@ def build_investment_fraud_report(
     qualifying_acknowledgements = {
         _identifier_value(row[additional_columns["ack"]])
         for _, row in additional_df.iterrows()
-        if is_investment_fraud(row[additional_columns["information"]])
+        if is_qualifying_fraud(row[additional_columns["information"]])
         and _identifier_value(row[additional_columns["ack"]])
     }
 
@@ -271,7 +298,7 @@ def build_investment_fraud_report(
     accounts: dict[str, dict[str, Any]] = {}
     for row in matched_rows:
         account_number = _identifier_value(row[layerwise_columns["account"]])
-        if not account_number:
+        if not re.fullmatch(r"[0-9]+", account_number):
             continue
 
         account_key = account_number.upper()
@@ -367,12 +394,15 @@ def generate_investment_fraud_excel(
     if report_date is None:
         report_date = datetime.now() - timedelta(days=1)
     date_label = report_date.strftime("%d-%m-%Y")
-    title = f"{date_label} Investment Fraud Top 20 Suspect Accounts from Layer 1"
+    title = (
+        f"{date_label} Investment Fraud and Digital Arrest Top 30 "
+        "Suspect Accounts from Layer 1"
+    )
     filename = f"{title}.xlsx"
 
     workbook = Workbook()
     worksheet = workbook.active
-    worksheet.title = "Top 20 Suspect Accounts"
+    worksheet.title = "Top 30 Suspect Accounts"
     worksheet.sheet_view.showGridLines = False
 
     navy = "17365D"
@@ -498,13 +528,13 @@ def _read_excel_upload(uploaded_file: Any) -> pd.DataFrame:
 
 
 def render_investment_fraud_top_accounts_page() -> None:
-    """Render the Top 20 Investment Suspect Accounts Streamlit page."""
+    """Render the Investment Fraud and Digital Arrest Top 30 page."""
     render_page_header_with_info("investment_fraud_top_accounts")
 
     st.markdown(
         "Upload the Additional Information and Layerwise reports. The page "
-        "finds investment-fraud complaints, matches their Layer 1 transactions, "
-        "combines repeated bank accounts, and ranks the top 20."
+        "finds investment-fraud and digital-arrest complaints, matches their "
+        "Layer 1 transactions, combines repeated bank accounts, and ranks the top 30."
     )
     st.markdown("---")
 
@@ -529,11 +559,12 @@ def render_investment_fraud_top_accounts_page() -> None:
     with st.expander("Report rules", expanded=False):
         st.markdown(
             """
-            - Detects common spelling variations of **investment fraud**.
+            - Detects common spelling variations of **investment fraud** and **digital arrest**.
             - Matches acknowledgement numbers between the two reports.
             - Keeps **Layer 1** transactions and entries whose bank name contains **Bank**.
+            - Keeps only account numbers made entirely of ASCII digits (0-9).
             - Combines repeated account numbers and sums Transaction Amount and Disputed Amount.
-            - Ranks up to 20 accounts by Total Disputed Amount, then Total Amount.
+            - Ranks up to 30 accounts by Total Disputed Amount, then Total Amount.
             """
         )
 
@@ -558,7 +589,7 @@ def render_investment_fraud_top_accounts_page() -> None:
 
     metric_columns = st.columns(4)
     metric_columns[0].metric(
-        "Investment-fraud ACKs", f"{summary['qualifying_acknowledgements']:,}"
+        "Qualifying ACKs", f"{summary['qualifying_acknowledgements']:,}"
     )
     metric_columns[1].metric(
         "Matched Layer 1 rows", f"{summary['matched_layer_one_transactions']:,}"
@@ -588,7 +619,7 @@ def render_investment_fraud_top_accounts_page() -> None:
         st.dataframe(preview_df, use_container_width=True, hide_index=True)
 
     st.download_button(
-        label="Download Investment Fraud Top 20 Excel Report",
+        label="Download Investment Fraud & Digital Arrest Top 30 Excel Report",
         data=excel_bytes,
         file_name=filename,
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
