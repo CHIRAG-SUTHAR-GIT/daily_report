@@ -27,3 +27,10 @@ htmlcov/
 
 # Hypothesis
 .hypothesis/
+
+# KYC mailer: page password hash and send history
+data/kyc_mailer_access.json
+data/kyc_mail_sent_log.csv
+# KYC mailer: record screenshots and the WhatsApp login profile
+KYC Mail Records/
+data/whatsapp_profile/

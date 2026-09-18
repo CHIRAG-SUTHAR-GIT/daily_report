@@ -10,6 +10,7 @@ from xml.sax.saxutils import escape
 import pandas as pd
 import streamlit as st
 from docx import Document
+from docx.text.paragraph import Paragraph as DocxParagraph
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT
 from docx.oxml import OxmlElement
@@ -393,6 +394,40 @@ def _replace_notice_date(document: Document, notice_date: date) -> None:
         _set_word_run_font(run, "Times New Roman", 12, bold=True)
 
 
+def _nodal_officer_lines(bank_name: str | None) -> List[str]:
+    """Addressee block: 'The Nodal Officer,' with the bank name on the next line."""
+    bank_name = _clean_text(bank_name)
+    return ["The Nodal Officer,", bank_name] if bank_name else ["All Nodal Officer,"]
+
+
+def _replace_notice_addressee(document: Document, bank_name: str | None) -> None:
+    paragraph = next(
+        (
+            item
+            for item in document.paragraphs
+            if item.text.strip() == "All Nodal Officer,"
+        ),
+        None,
+    )
+    if paragraph is None:
+        raise ValueError("The KYC notice template addressee line was not found.")
+
+    lines = _nodal_officer_lines(bank_name)
+    runs = paragraph.runs
+    runs[0].text = lines[0]
+    for run in runs[1:]:
+        run.text = ""
+
+    for line in lines[1:]:
+        extra = deepcopy(paragraph._p)
+        paragraph._p.addnext(extra)
+        extra_paragraph = DocxParagraph(extra, paragraph._parent)
+        extra_runs = extra_paragraph.runs
+        extra_runs[0].text = line
+        for run in extra_runs[1:]:
+            run.text = ""
+
+
 def _replace_notice_table(document: Document, notice_df: pd.DataFrame) -> None:
     if not document.tables or len(document.tables[0].rows) < 2:
         raise ValueError("The KYC notice template account table is missing.")
@@ -446,8 +481,13 @@ def _replace_notice_table(document: Document, notice_df: pd.DataFrame) -> None:
 def build_kyc_notice_docx(
     notice_df: pd.DataFrame,
     notice_date: date | None = None,
+    bank_name: str | None = None,
 ) -> bytes:
-    """Build a Word KYC notice from the retained official notice template."""
+    """Build a Word KYC notice from the retained official notice template.
+
+    When ``bank_name`` is given the notice is addressed to that bank's nodal
+    officer instead of all nodal officers.
+    """
     notice_df, _ = prepare_kyc_notice_accounts(notice_df)
     if notice_df.empty:
         raise ValueError("No eligible bank accounts are available for the KYC notice.")
@@ -457,6 +497,7 @@ def build_kyc_notice_docx(
     generated_on = notice_date or _current_notice_date()
     document = Document(_KYC_NOTICE_TEMPLATE)
     _replace_notice_date(document, generated_on)
+    _replace_notice_addressee(document, bank_name)
     _replace_notice_table(document, notice_df)
     document.core_properties.created = datetime.combine(
         generated_on, datetime.min.time()
@@ -602,6 +643,7 @@ def _pdf_account_table(rows: List[List[Paragraph]], include_header: bool = False
 def build_kyc_notice_pdf(
     notice_df: pd.DataFrame,
     notice_date: date | None = None,
+    bank_name: str | None = None,
 ) -> bytes:
     """Build a PDF KYC notice with the final account row kept with the signature."""
     notice_df, _ = prepare_kyc_notice_accounts(notice_df)
@@ -688,19 +730,22 @@ def build_kyc_notice_pdf(
             styles["notice_title"],
         ),
         Paragraph("To,", styles["body"]),
-        Paragraph("All Nodal Officer,", styles["body"]),
+        *[
+            Paragraph(escape(line), styles["body"])
+            for line in _nodal_officer_lines(bank_name)
+        ],
         Paragraph(
             "&nbsp;&nbsp;&nbsp;&nbsp;<b>Subject:</b> Provision of Know Your Customer "
             "(KYC) Details of Account Holder(s).",
             styles["body"],
         ),
         Paragraph(
-            "This office has received an intimation through NCCRP regarding a "
+            "This office has received an intimation through the NCCRP regarding a "
             "suspicious/fraudulent transaction linked to the bank account(s) "
             "mentioned below. In this connection, you are hereby directed to "
-            "furnish the Know Your Customer (KYC) details - including Name, "
-            "Address, and Mobile Number - of the concerned account holder(s) at "
-            "the earliest.",
+            "furnish only the Name, Address, and Mobile Number of the concerned "
+            "account holder(s). The requested details may kindly be filled in the "
+            "provided Excel file and furnished at the earliest.",
             styles["justified"],
         ),
         Paragraph("<b>Suspect Account Details:</b>", styles["body"]),

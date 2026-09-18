@@ -60,6 +60,7 @@ from src.mysql_database_viewer import render_mysql_database_viewer_page
 from src.ai_sql_assistant import render_ai_sql_assistant_page
 from src.automated_workflow import render_automated_workflow_page
 from src.gujarat_account_formatter import render_gujarat_account_formatter_page
+from src.kyc_notice_mailer import render_kyc_notice_mailer_page
 from src.column_transfer import render_column_transfer_page
 from src.ui_styling import apply_custom_css, render_page_header_with_info
 from src.smart_district_split import render_smart_district_split_page
@@ -152,6 +153,7 @@ def render_sidebar():
             'report_generator': '📊 Account & Hold Amount Report Generator',
             'automated_workflow': '🔄 Automated Workflow',
             'gujarat_account_formatter': 'Gujarat Unique Account Output',
+            'kyc_notice_mailer': 'KYC Notice Mailer (NIC Mail)',
             'column_transfer': 'Add Columns by Match',
             'column_selector': '📋 Filter Excel File with the Columns You Need',
             'csv_fixer': 'CSV Fixer',
@@ -193,6 +195,7 @@ def render_sidebar():
             'report_generator': 'Account & Hold Report',
             'automated_workflow': 'Automated Workflow',
             'gujarat_account_formatter': 'Gujarat Unique Account Output',
+            'kyc_notice_mailer': 'KYC Notice Mailer (NIC Mail)',
             'column_transfer': 'Add Columns by Match',
             'column_selector': 'Column Selector',
             'csv_fixer': 'CSV Fixer',
@@ -219,6 +222,7 @@ def render_sidebar():
             'top_10_suspect',
             'automated_workflow',
             'gujarat_account_formatter',
+            'kyc_notice_mailer',
             'column_transfer',
             'daily_report_district_split',
             'e_fir_report',
@@ -920,6 +924,8 @@ elif current_page == 'automated_workflow':
     render_automated_workflow_page()
 elif current_page == 'gujarat_account_formatter':
     render_gujarat_account_formatter_page()
+elif current_page == 'kyc_notice_mailer':
+    render_kyc_notice_mailer_page()
 elif current_page == 'column_transfer':
     render_column_transfer_page()
 elif current_page == 'column_selector':
