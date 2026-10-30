@@ -9,7 +9,57 @@ Last Updated: 2026-04-27 - Account report now uses distinct Account Numbers
 
 import sys
 import os
+import streamlit as st
+import pandas as pd
+from datetime import datetime
+from io import BytesIO
+from typing import Optional, List, Dict, Any
 
+from src.upload_service import UploadService
+from src.column_detector import ColumnDetector
+from src.data_processor import DataProcessor
+from src.validation_engine import ValidationEngine
+from src.aggregation_engine import AggregationEngine
+from src.report_generator import ReportGenerator
+from src.dashboard import Dashboard
+from src.session_manager import SessionManager
+from src.models import ColumnMapping, AggregatedAccount, ProcessingStats, ValidationResult
+from src.district_data import render_district_download_page
+from src.merge_files import render_merge_files_page
+from src.excel_merger import render_excel_merger_page
+from src.call_notice_data_merge import render_call_notice_merge_page
+from src.transaction_matcher import render_transaction_matcher_page
+from src.disputed_amount_matcher import render_disputed_amount_matcher_page
+from src.money_transfer_dispute import render_money_transfer_dispute_page
+from src.ack_bank_consolidator import render_ack_bank_consolidator_page
+from src.database_service import DatabaseService
+from src.report_service import ReportService
+from src.districtwise import render_districtwise_page
+from src.non_gujarat_filter import render_non_gujarat_filter_page
+from src.column_selector import render_column_selector_page
+from src.csv_fixer import render_csv_fixer_page
+from src.drop_call_finder import render_drop_call_finder_page
+from src.mo_finder import render_mo_finder_page
+from src.amount_matcher import render_amount_matcher_page
+from src.bank_ack_pivot import render_bank_ack_pivot_page
+from src.ack_list_pivot import render_ack_list_pivot_page
+from src.filter_by_entry_count import render_filter_by_entry_count_page
+from src.filter_by_unique_ack import render_filter_by_unique_ack_page
+from src.bulk_mysql_import import render_bulk_mysql_import_page
+from src.mysql_database_viewer import render_mysql_database_viewer_page
+from src.ai_sql_assistant import render_ai_sql_assistant_page
+from src.automated_workflow import render_automated_workflow_page
+from src.gujarat_account_formatter import render_gujarat_account_formatter_page
+from src.kyc_notice_mailer import render_kyc_notice_mailer_page
+from src.column_transfer import render_column_transfer_page
+from src.ui_styling import apply_custom_css, render_page_header_with_info
+from src.smart_district_split import render_smart_district_split_page
+from src.ifsc_pincode_district_split import render_ifsc_pincode_district_split_page
+from src.daily_report_district_split import render_daily_report_district_split_page
+from src.distinct_account_pivot import render_distinct_account_pivot_page
+from src.investment_fraud_top_accounts import render_investment_fraud_top_accounts_page
+from src.top_10_suspect_accounts import render_top_10_suspect_accounts_page
+from src.e_fir_report import render_efir_report_page
 # Ensure the project root is on sys.path so `import src.xyz` works when
 # Streamlit runs `src/app.py` as a script. This makes imports stable whether
 # you run `python -m streamlit run src/app.py` from the repo root or from
