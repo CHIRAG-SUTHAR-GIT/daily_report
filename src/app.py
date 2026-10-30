@@ -9,6 +9,14 @@ Last Updated: 2026-04-27 - Account report now uses distinct Account Numbers
 
 import sys
 import os
+
+# Ensure the project root is on sys.path BEFORE any `src.*` import.
+# Streamlit runs `src/app.py` as a script, so without this `src` is not found.
+_THIS_FILE = os.path.abspath(__file__)
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(_THIS_FILE))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -59,15 +67,6 @@ from src.distinct_account_pivot import render_distinct_account_pivot_page
 from src.investment_fraud_top_accounts import render_investment_fraud_top_accounts_page
 from src.top_10_suspect_accounts import render_top_10_suspect_accounts_page
 from src.e_fir_report import render_efir_report_page
-# Ensure the project root is on sys.path so `import src.xyz` works when
-# Streamlit runs `src/app.py` as a script. This makes imports stable whether
-# you run `python -m streamlit run src/app.py` from the repo root or from
-# another working directory.
-_THIS_FILE = os.path.abspath(__file__)
-_PROJECT_ROOT = os.path.dirname(os.path.dirname(_THIS_FILE))
-if _PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, _PROJECT_ROOT)
-
 
 
 # Page configuration
